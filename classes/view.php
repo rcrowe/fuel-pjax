@@ -8,14 +8,7 @@ use Input;
 class View extends \Fuel\Core\View
 {
     /**
-     * Returns a new View object. If you do not define the "file" parameter,
-     * you must call [static::set_filename].
-     *
-     *     $view = View::forge($file);
-     *
-     * @param   string  view filename
-     * @param   array   array of values
-     * @return  View
+     * Check for PJAX and return appropriate view data.
      */
     public static function forge($file = null, $data = null, $auto_filter = null)
     {
