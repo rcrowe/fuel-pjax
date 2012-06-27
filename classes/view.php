@@ -8,26 +8,51 @@ use Input;
 class View extends \Fuel\Core\View
 {
     /**
+     * @var bool Was this view loaded with PJAX.
+     */
+    protected static $pjax = false;
+
+    /**
+     * @var bool Was a pjax view file loaded, ie, file-pjax.php compared to file.php.
+     */
+    protected $pjax_file_loaded = false;
+
+    /**
      * Check for PJAX and return appropriate view data.
      */
     public static function forge($file = null, $data = null, $auto_filter = null)
     {
-        Config::load('jax', true);
+        Config::load('pjax', true);
 
-        $view = parent::forge($file, $data, $auto_filter);
-        $tag  = Config::get('jax.tag', '{# PJAX #}');
+        // Tag used to denote the pjax content
+        $tag = Config::get('pjax.tag', '{# PJAX #}');
 
+        // Is this a PJAX request
         if(!Input::server('HTTP_X_PJAX') AND !Input::get('_pjax'))
         {
-            // This isn't a PJAX request
-            // send back the normal view after removing tags
+            //Nope, return standard view
+            $view = parent::forge($file, $data, $auto_filter);
             return str_replace($tag, '', $view);
         }
 
-        // Get title
+        // Set that this view is being loaded with PJAX
+        static::$pjax = true;
+
+        // Grab the view, checking whether a pjax version of the file exists
+        $view = parent::forge($file, $data, $auto_filter);
+
+        // If we loaded a PJAX file then there's no more processing todo
+        if($view->pjax_file_loaded)
+        {
+            return $view;
+        }
+
+        // Process same view file for PJAX support
+        $pjax = array();
+
+        // Try and get the pages title
         preg_match('@<title>([^<]+)</title>@', $view, $matches);
         $pjax['title'] = (isset($matches[0])) ? $matches[0] : '';
-
 
         // Get PJAX content
         $start = stripos($view, $tag);
@@ -36,6 +61,7 @@ class View extends \Fuel\Core\View
         {
             // Couldnt find opening tag
             // Return whole view
+            static::$pjax = false;
             return str_replace($tag, '', $view);
         }
 
@@ -46,6 +72,7 @@ class View extends \Fuel\Core\View
         {
             // Means there was an opening but no closing tag
             // Return whole view
+            static::$pjax = false;
             return str_replace($tag, '', $view);
         }
 
@@ -53,5 +80,45 @@ class View extends \Fuel\Core\View
 
 
         return trim($pjax['title'].$pjax['content']);
+    }
+
+    public function set_filename($file)
+    {
+        // set find_file's one-time-only search paths
+        \Finder::instance()->flash($this->request_paths);
+
+        // Check if this request is being made by PJAX
+        if(static::$pjax)
+        {
+            $pjax_file = explode('.', $file);
+            $pjax_file = $pjax_file[0].Config::get('pjax.file', '-pjax');
+
+            // locate the pjax view file
+            if(($path = \Finder::search('views', $pjax_file, '.'.$this->extension, false, false)) !== false)
+            {
+                $this->pjax_file_loaded = true;
+            }
+            else
+            {
+                // PJAX file not found, carry on looking for normal view file
+                if (($path = \Finder::search('views', $file, '.'.$this->extension, false, false)) === false)
+                {
+                    throw new \FuelException('The requested view could not be found: '.\Fuel::clean_path($file));
+                }
+            }
+        }
+        else
+        {
+            // locate the view file
+            if (($path = \Finder::search('views', $file, '.'.$this->extension, false, false)) === false)
+            {
+                throw new \FuelException('The requested view could not be found: '.\Fuel::clean_path($file));
+            }
+        }
+
+        // Store the file path locally
+        $this->file_name = $path;
+
+        return $this;
     }
 }
