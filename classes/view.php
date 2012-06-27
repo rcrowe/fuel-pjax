@@ -4,6 +4,7 @@ namespace Pjax;
 
 use Config;
 use Input;
+use Log;
 
 class View extends \Fuel\Core\View
 {
@@ -35,6 +36,8 @@ class View extends \Fuel\Core\View
             return str_replace($tag, '', $view);
         }
 
+        Log::info('View file loaded WITH PJAX: '.$file);
+
         // Set that this view is being loaded with PJAX
         static::$pjax = true;
 
@@ -46,6 +49,8 @@ class View extends \Fuel\Core\View
         {
             return $view;
         }
+
+        Log::info('Pjax\View::forge - parsing view file for PJAX tags');
 
         // Process same view file for PJAX support
         $pjax = array();
@@ -60,6 +65,8 @@ class View extends \Fuel\Core\View
         if($start === false)
         {
             // Couldnt find opening tag
+            Log::warning('Pjax\View::forge - could not find opeing tag: '.$tag);
+
             // Return whole view
             static::$pjax = false;
             return str_replace($tag, '', $view);
@@ -71,13 +78,16 @@ class View extends \Fuel\Core\View
         if($end === 0)
         {
             // Means there was an opening but no closing tag
+            Log::warning('Pjax\View::forge - could not find closing tag: '.$tag);
+
             // Return whole view
             static::$pjax = false;
             return str_replace($tag, '', $view);
         }
 
-        $pjax['content'] = substr($str, (0 + strlen($tag)), ($end - strlen($tag)));
+        Log::info('Pjax\View::forge - view file parsed as pjax content');
 
+        $pjax['content'] = substr($str, (0 + strlen($tag)), ($end - strlen($tag)));
 
         return trim($pjax['title'].$pjax['content']);
     }
@@ -106,6 +116,8 @@ class View extends \Fuel\Core\View
                     throw new \FuelException('The requested view could not be found: '.\Fuel::clean_path($file));
                 }
             }
+
+            Log::info('Pjax\View::forge - loaded WITH PJAX: '.$path);
         }
         else
         {
@@ -114,6 +126,8 @@ class View extends \Fuel\Core\View
             {
                 throw new \FuelException('The requested view could not be found: '.\Fuel::clean_path($file));
             }
+
+            Log::info('Pjax\View::forge - loaded WITHOUT PJAX: '.$path);
         }
 
         // Store the file path locally
