@@ -36,8 +36,6 @@ class View extends \Fuel\Core\View
             return str_replace($tag, '', $view);
         }
 
-        Log::info('View file loaded WITH PJAX: '.$file);
-
         // Set that this view is being loaded with PJAX
         static::$pjax = true;
 
