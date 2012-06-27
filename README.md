@@ -23,3 +23,10 @@ Wrap any section of your view with the {# PJAX #} tag so for example:
 
 Fuel will then return `content` if it is a PJAX request or remove the tag if not. If the `<title>` tag is found this is
 also returned to PJAX.
+
+You can also use a seperate file for PJAX requests by appending -pjax to the file. So if you request `home` it will
+try and load `home-pjax` first. For example:
+
+```
+View::forge('home') -> home-pjax.php
+```
