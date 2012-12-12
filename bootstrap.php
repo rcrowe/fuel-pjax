@@ -14,7 +14,8 @@
 Autoloader::add_core_namespace('Pjax');
 
 Autoloader::add_classes(array(
-    'Pjax\\View' => __DIR__.'/classes/view.php',
+    'Pjax\\View'     => __DIR__.'/classes/view.php',
+    'Pjax\\Response' => __DIR__.'/classes/response.php',
 ));
 
 

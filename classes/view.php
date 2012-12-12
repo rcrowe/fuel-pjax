@@ -21,82 +21,94 @@ class View extends \Fuel\Core\View
     /**
      * Check for PJAX and return appropriate view data.
      */
-    public static function forge($file = null, $data = null, $auto_filter = null)
-    {
-        Config::load('pjax', true);
+    // public static function forge($file = null, $data = null, $auto_filter = null)
+    // {
+    //     if(Input::server('HTTP_X_PJAX') OR Input::get('_pjax'))
+    //     {
+    //         // PJAX request
+    //         static::$pjax = true;
+    //     }
 
-        // Tag used to denote the pjax content
-        $tag = Config::get('pjax.tag', '{# PJAX #}');
+    //     return parent::forge($file, $data, $auto_filter);
 
-        // Is this a PJAX request
-        if(!Input::server('HTTP_X_PJAX') AND !Input::get('_pjax'))
-        {
-            //Nope, return standard view
-            $view = parent::forge($file, $data, $auto_filter);
-            return str_replace($tag, '', $view);
-        }
 
-        // Set that this view is being loaded with PJAX
-        static::$pjax = true;
 
-        // Grab the view, checking whether a pjax version of the file exists
-        $view = parent::forge($file, $data, $auto_filter);
+        // Config::load('pjax', true);
 
-        // If we loaded a PJAX file then there's no more processing todo
-        if($view->pjax_file_loaded)
-        {
-            return $view;
-        }
+        // // Tag used to denote the pjax content
+        // $tag = Config::get('pjax.tag', '{# PJAX #}');
 
-        Log::info('Pjax\View::forge - parsing view file for PJAX tags');
+        // // Is this a PJAX request
+        // if(!Input::server('HTTP_X_PJAX') AND !Input::get('_pjax'))
+        // {
+        //     //Nope, return standard view
+        //     $view = parent::forge($file, $data, $auto_filter);
+        //     return str_replace($tag, '', $view);
+        // }
 
-        // Process same view file for PJAX support
-        $pjax = array();
+        // // Set that this view is being loaded with PJAX
+        // static::$pjax = true;
 
-        // Try and get the pages title
-        preg_match('@<title>([^<]+)</title>@', $view, $matches);
-        $pjax['title'] = (isset($matches[0])) ? $matches[0] : '';
+        // // Grab the view, checking whether a pjax version of the file exists
+        // $view = parent::forge($file, $data, $auto_filter);
 
-        // Get PJAX content
-        $start = stripos($view, $tag);
+        // // If we loaded a PJAX file then there's no more processing todo
+        // if($view->pjax_file_loaded)
+        // {
+        //     return $view;
+        // }
 
-        if($start === false)
-        {
-            // Couldnt find opening tag
-            Log::warning('Pjax\View::forge - could not find opeing tag: '.$tag);
+        // Log::info('Pjax\View::forge - parsing view file for PJAX tags');
 
-            // Return whole view
-            static::$pjax = false;
-            return str_replace($tag, '', $view);
-        }
+        // // Process same view file for PJAX support
+        // $pjax = array();
 
-        $str = substr($view, $start);
-        $end = strripos($str, $tag);
+        // // Try and get the pages title
+        // preg_match('@<title>([^<]+)</title>@', $view, $matches);
+        // $pjax['title'] = (isset($matches[0])) ? $matches[0] : '';
 
-        if($end === 0)
-        {
-            // Means there was an opening but no closing tag
-            Log::warning('Pjax\View::forge - could not find closing tag: '.$tag);
+        // // Get PJAX content
+        // $start = stripos($view, $tag);
 
-            // Return whole view
-            static::$pjax = false;
-            return str_replace($tag, '', $view);
-        }
+        // if($start === false)
+        // {
+        //     // Couldnt find opening tag
+        //     Log::warning('Pjax\View::forge - could not find opeing tag: '.$tag);
 
-        Log::info('Pjax\View::forge - view file parsed as pjax content');
+        //     // Return whole view
+        //     static::$pjax = false;
+        //     return str_replace($tag, '', $view);
+        // }
 
-        $pjax['content'] = substr($str, (0 + strlen($tag)), ($end - strlen($tag)));
+        // $str = substr($view, $start);
+        // $end = strripos($str, $tag);
 
-        return trim($pjax['title'].$pjax['content']);
-    }
+        // if($end === 0)
+        // {
+        //     // Means there was an opening but no closing tag
+        //     Log::warning('Pjax\View::forge - could not find closing tag: '.$tag);
+
+        //     // Return whole view
+        //     static::$pjax = false;
+        //     return str_replace($tag, '', $view);
+        // }
+
+        // Log::info('Pjax\View::forge - view file parsed as pjax content');
+
+        // $pjax['content'] = substr($str, (0 + strlen($tag)), ($end - strlen($tag)));
+
+        // return trim($pjax['title'].$pjax['content']);
+    // }
 
     public function set_filename($file)
     {
         // set find_file's one-time-only search paths
         \Finder::instance()->flash($this->request_paths);
 
+        $is_pjax = Input::server('HTTP_X_PJAX') OR Input::get('_pjax');
+
         // Check if this request is being made by PJAX
-        if(static::$pjax)
+        if($is_pjax)
         {
             $pjax_file = explode('.', $file);
             $pjax_file = $pjax_file[0].Config::get('pjax.file', '-pjax');
