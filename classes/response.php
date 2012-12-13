@@ -24,21 +24,18 @@ class Response extends \Fuel\Core\Response
 
         if (func_num_args())
         {
-            $this->body = (!$is_pjax) ? str_replace($tag, '', $value) : $this->filter_pjax($value);
+            $this->body = (!$is_pjax) ? str_replace($tag, '', $value) : $this->filter_pjax($tag, $value);
             return $this;
         }
 
-        return (!$is_pjax) ? str_replace($tag, '', $this->body) : $this->filter_pjax($this->body);
+        return (!$is_pjax) ? str_replace($tag, '', $this->body) : $this->filter_pjax($tag, $this->body);
     }
 
-    protected function filter_pjax($view)
+    protected function filter_pjax($tag, $view)
     {
         Log::info('Pjax\View::forge - parsing view file for PJAX tags');
 
-        Config::load('pjax', true);
-
         $view    = (string)$view;
-        $tag     = Config::get('pjax.tag', '{# PJAX #}');
         $title   = '';
         $content = '';
 
