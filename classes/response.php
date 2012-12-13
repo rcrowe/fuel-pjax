@@ -17,19 +17,18 @@ class Response extends \Fuel\Core\Response
      */
     public function body($value = false)
     {
+        Config::load('pjax');
+
+        $tag     = Config::get('tag', '{# PJAX #}');
         $is_pjax = (Input::server('HTTP_X_PJAX') or Input::get('_pjax'));
-		
+
         if (func_num_args())
         {
-			Config::load('pjax');
-			$tag = Config::get('tag', '{# PJAX #}');
-			
             $this->body = (!$is_pjax) ? str_replace($tag, '', $value) : $this->filter_pjax($value);
-			
             return $this;
         }
 
-        return (!$is_pjax) ? $this->body : $this->filter_pjax($this->body);
+        return (!$is_pjax) ? str_replace($tag, '', $this->body) : $this->filter_pjax($this->body);
     }
 
     protected function filter_pjax($view)
