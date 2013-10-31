@@ -1,9 +1,8 @@
-
 *************************************************
 
 > use [Turbo](http://github.com/rcrowe/Turbo)
 
-> fuel-pjax is unsupported
+> __fuel-pjax is unsupported__
 
 *************************************************
 
